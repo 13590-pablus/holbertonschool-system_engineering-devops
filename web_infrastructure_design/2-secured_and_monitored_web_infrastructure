@@ -1,0 +1,40 @@
+# Task 2: Secured and Monitored Web Infrastructure
+
+## Infrastructure Overview
+
+This infrastructure builds upon the distributed setup by securing incoming traffic with SSL/TLS encryption, restricting unauthorized access using firewalls, and implementing real-time performance and log monitoring across all nodes.
+
+### Components:
+- **1 Load Balancer (HAProxy)**: Serves encrypted HTTPS traffic and balances load across web servers. Includes Firewall 1 and Monitoring Client 1.
+- **Server 1 (Web & App Server + MySQL Primary)**: Runs Nginx, App Server, Application Files, MySQL Primary. Includes Firewall 2 and Monitoring Client 2.
+- **Server 2 (Web & App Server + MySQL Replica)**: Runs Nginx, App Server, Application Files, MySQL Replica. Includes Firewall 3 and Monitoring Client 3.
+- **3 Firewalls**: Installed on each server to restrict port access.
+- **1 SSL Certificate**: Installed on the load balancer to handle encrypted HTTPS traffic.
+- **3 Monitoring Clients**: Data collectors running on each server pushing metrics/logs to a centralized service (e.g., Sumo Logic).
+
+---
+
+## Specifics & Justifications
+
+### 1. Why Additional Elements Were Added
+- **Firewalls**: Added to secure servers by blocking unauthorized network traffic and only allowing required open ports (e.g., 80, 443, SSH).
+- **SSL Certificate**: Added to encrypt network traffic between client browsers and the infrastructure using HTTPS (port 443).
+- **Monitoring Clients**: Added to collect metric and log data in real-time to track infrastructure health, performance bottlenecks, and uptime.
+
+### 2. Purpose of Components
+- **Firewalls**: Act as network security barriers that monitor and filter incoming and outgoing traffic based on predefined security rules.
+- **HTTPS**: Encrypts requests and responses between the client and server using SSL/TLS protocol, protecting sensitive user data (like passwords and credit cards) from eavesdropping and Man-in-the-Middle (MitM) attacks.
+- **Monitoring**: Used to detect outages, monitor CPU/RAM/Disk utilization, track error rates, and gain insights into system operations.
+- **Data Collection Mechanism**: Monitoring agents running locally on each server collect metrics/logs system-wide and push them to a central server or third-party monitoring provider (e.g., Sumo Logic, Datadog) via HTTPS APIs.
+- **Monitoring Web Server QPS (Queries Per Second)**: QPS can be monitored by configuring the web server (Nginx) access logs to capture incoming requests, and using the monitoring client to parse those logs or poll the Nginx `stub_status` module to measure request rates over time.
+
+---
+
+## Issues & Limitations
+
+1. **SSL Termination at Load Balancer**:
+   - Traffic between the user and HAProxy is encrypted, but traffic between HAProxy and the web servers travels unencrypted over plain HTTP through the internal network. If an attacker gains access to the internal network, they can sniff unencrypted traffic.
+2. **Single MySQL Write Node**:
+   - Having only one Primary MySQL server capable of accepting writes remains a Single Point of Failure (SPOF). If the Primary node crashes, the application cannot process any write operations until manual failover occurs.
+3. **Servers Running identical Components**:
+   - Running the database, web server, and application server on the same physical server leads to resource contention (CPU, RAM, Disk I/O compete against each other). If Nginx or the App Server consumes excessive RAM, it can crash the MySQL instance.
