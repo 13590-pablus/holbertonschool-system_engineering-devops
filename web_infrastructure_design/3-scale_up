@@ -1,0 +1,40 @@
+# Task 3: Scale Up Infrastructure
+
+## Infrastructure Overview
+
+This infrastructure scales up the existing stack by completely decoupling components onto dedicated servers and setting up a High Availability (HA) Load Balancer cluster to eliminate single points of failure.
+
+### Components:
+- **2 Load Balancers (HAProxy Cluster)**: Configured in an Active-Passive setup with Keepalived / Virtual IP (VRRP) for high availability.
+- **1 Dedicated Web Server (Nginx)**: Handles SSL termination, static content serving, and HTTP request routing.
+- **1 Dedicated Application Server**: Runs application business logic using codebase.
+- **1 Dedicated Database Server (MySQL)**: Handles persistent data storage and querying independently.
+
+---
+
+## Specifics & Justifications
+
+### Why Additional Elements Were Added
+
+1. **Additional Load Balancer (HAProxy Cluster)**:
+   - **Why**: Eliminates the single point of failure (SPOF) at the load balancer layer. Using an Active-Passive configuration with Keepalived, if the active load balancer fails, the passive load balancer automatically takes over traffic handling via a floating/virtual IP.
+
+2. **Decoupled Server Roles (Web, App, Database split)**:
+   - **Why**: 
+     - **Performance & Resource Allocation**: Prevents resource contention (CPU, RAM, Disk I/O) between Nginx, application code, and MySQL. Each service gets dedicated hardware resources.
+     - **Security**: The Database server can be completely isolated inside a private subnet, accepting connections solely from the Application Server.
+     - **Independent Scalability**: Allows horizontal or vertical scaling of individual layers (e.g., adding more web servers or app servers) without modifying the database server.
+
+### Application Server vs Web Server
+
+- **Web Server (Nginx)**: 
+  - Primarily handles HTTP protocol requests, SSL/TLS encryption/decryption, serving static files (HTML, CSS, images), and acting as a reverse proxy/load balancer to forward dynamic requests.
+- **Application Server**: 
+  - Executes dynamic code and business logic (Python, PHP, Node.js, Ruby), processes business operations, and directly interacts with database systems to generate response data.
+
+---
+
+## Issues & Limitations
+
+1. **Database SPOF**: Having only one dedicated database server means database availability remains a single point of failure until a multi-node cluster or primary-replica structure is added.
+2. **Web/App Server SPOF**: Having only 1 dedicated web server and 1 dedicated app server means if either node crashes, that specific layer becomes unavailable.
