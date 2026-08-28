@@ -1,0 +1,27 @@
+# Task 0: Simple Web Stack
+
+## Infrastructure Overview
+
+When a user requests `www.foobar.com`:
+1. **DNS Request**: The client browser queries DNS to resolve `www.foobar.com`. The DNS server returns IP address `8.8.8.8` using an **A Record**.
+2. **HTTP Connection**: The client connects to `8.8.8.8` using the **TCP/IP** protocol on port 80.
+3. **Web Server (Nginx)**: Receives the HTTP request. Serves static content directly or forwards dynamic requests to the Application Server.
+4. **Application Server**: Executes application code logic and queries the Database.
+5. **Database (MySQL)**: Stores and retrieves dynamic application data.
+6. **HTTP Response**: The processed data travels back through Nginx to the user's browser.
+
+## Component Explanations
+
+- **Server**: A hardware device or virtual machine that hosts services and serves requests to client computers.
+- **Domain Name**: Human-friendly string (`foobar.com`) mapped to numerical IP addresses via DNS.
+- **DNS Record**: An **A Record** maps `www.foobar.com` directly to `8.8.8.8`.
+- **Web Server (Nginx)**: Handles incoming HTTP requests, static file delivery, and SSL/TLS termination.
+- **Application Server**: Executes business logic using the codebase.
+- **Database (MySQL)**: Provides persistent data storage and querying capabilities.
+- **Communication Protocols**: Uses **TCP/IP** and **HTTP** to transmit data between browser and server.
+
+## Issues with this Infrastructure
+
+1. **Single Point of Failure (SPOF)**: If the server goes down, the entire site is completely unreachable.
+2. **Downtime for Maintenance**: Restarting Nginx or deploying code causes temporary outage for end users.
+3. **Limited Scalability**: Cannot handle high traffic spikes since hardware resources (CPU/RAM) are constrained to a single machine.

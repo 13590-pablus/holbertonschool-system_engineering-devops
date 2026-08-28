@@ -1,2 +1,1 @@
-# holbertonschool-system_engineering-devops
-fa
+# Holberton School - System Engineering & DevOps
