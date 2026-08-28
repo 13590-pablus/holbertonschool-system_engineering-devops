@@ -1,0 +1,45 @@
+# Task 1: Distributed Web Infrastructure
+
+## Infrastructure Overview
+
+This infrastructure scales the single-server stack into a 3-server distributed setup to handle higher incoming traffic and introduce redundancy for the web/application tier.
+
+### Components:
+- **1 Load Balancer (HAProxy)**: Distributes incoming web traffic between the two application servers.
+- **Server 1 (Web & App Server)**: Runs Nginx (Web Server), Application Server, Application Files, and MySQL (Primary Node).
+- **Server 2 (Web & App Server)**: Runs Nginx (Web Server), Application Server, Application Files, and MySQL (Replica Node).
+- **Domain Name (`www.foobar.com`)**: Points to the IP address of the HAProxy Load Balancer via a DNS A Record.
+
+---
+
+## Specifics & Justifications
+
+### 1. Why Additional Elements Were Added
+- **Load Balancer (HAProxy)**: Added to act as a reverse proxy and balance traffic across multiple web servers, preventing any single web server from becoming overloaded.
+- **Second Server**: Added for horizontal scaling and load distribution across two application/web servers.
+- **Primary-Replica Database Setup**: Separates database read operations from write operations to improve database performance and consistency.
+
+### 2. Load Balancer Algorithm & Setup
+- **Distribution Algorithm**: **Round Robin**. This algorithm distributes client requests sequentially among the available web servers in turn.
+- **Active-Passive vs. Active-Active**:
+  - **Active-Active**: All servers are actively handling traffic simultaneously (our setup for Server 1 and Server 2 behind HAProxy).
+  - **Active-Passive**: One server actively handles traffic while the secondary server remains on standby, taking over only if the primary server fails.
+
+### 3. Database Primary-Replica (Master-Slave) Cluster
+- **How it works**: Data is written to the Primary node, which records changes and asynchronously replicates those operations to the Replica node.
+- **Roles regarding the Application**:
+  - **Primary Node**: Handles all **Write** operations (`INSERT`, `UPDATE`, `DELETE`). It maintains data integrity and pushes changes to the Replica.
+  - **Replica Node**: Handles **Read** operations (`SELECT`). This relieves read-heavy load from the Primary node.
+
+---
+
+## Issues & Limitations
+
+1. **Single Points of Failure (SPOF)**:
+   - The **HAProxy Load Balancer** is a single point of failure. If HAProxy goes down, the entire infrastructure becomes completely unreachable.
+   - The **Primary Database Node** is a SPOF for write operations. If it fails, the application cannot perform write/update actions.
+2. **Security Issues**:
+   - **No Firewall (UFW/iptables)**: Unrestricted network access exposes internal services to public attacks.
+   - **No HTTPS/SSL Certificate**: Communication between clients and HAProxy is unencrypted over plain HTTP (port 80), making traffic vulnerable to eavesdropping and man-in-the-middle attacks.
+3. **No Monitoring**:
+   - There are no monitoring or alerting tools (e.g., Datadog, Nagios, Prometheus) to track server performance, uptime, CPU/RAM spikes, or network status.
